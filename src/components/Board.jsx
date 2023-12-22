@@ -1,36 +1,42 @@
-import { useEffect, useState } from 'react';
 import Square from './Square';
-import { TURNS } from '../constants.js';
-import { calculateWinner } from '../logic/board.js';
 import ResultModal from './ResultModal';
-import { resetGameStorage, saveGameToStorage } from '../logic/storage/index.js';
 import NextPlayer from './NextPlayer.jsx';
+import { TURNS } from '../constants.js';
+import { useEffect, useState } from 'react';
+import { calculateWinner } from '../logic/board.js';
+import { resetGameStorage, saveGameToStorage } from '../logic/storage/index.js';
+import Title from './Title.jsx';
 
 const Board = () => {
+  // Initialize board state
   const [board, setBoard] = useState(() => {
     const boardFromStorage = window.localStorage.getItem('board');
     if (boardFromStorage) return JSON.parse(boardFromStorage);
     return Array(9).fill(null);
   });
-
+  // Initialize turn state
   const [turn, setTurn] = useState(() => {
     const turnFromStorage = window.localStorage.getItem('turn');
     return turnFromStorage ?? TURNS.x;
   });
+  // Initialize isWinner state
   const [isWinner, setIsWinner] = useState(null);
-  const [tempWinningSquares, setWinningSquares] = useState(null);
+  // Initialize tempWinningSquares state
+  const [winningSquares, setWinningSquares] = useState(null);
 
+  // resetBoard;
   const resetBoard = () => {
     setBoard(Array(9).fill(null));
     setTurn(TURNS.x);
     setIsWinner(null);
     resetGameStorage();
   };
+
   // After winning forbids rerenders
   // to make the winning row.
-useEffect(() => {
-  updateBoard()
-  },[isWinner])
+  useEffect(() => {
+    updateBoard();
+  }, [isWinner]);
 
   const updateBoard = (index) => {
     // if element not null return.
@@ -39,11 +45,12 @@ useEffect(() => {
     // update board
     const newBoard = [...board];
     newBoard[index] = turn;
+    setBoard(newBoard);
+
     // check winner
     const tempWinningSquares = calculateWinner(newBoard);
     setWinningSquares(tempWinningSquares);
 
-    setBoard(newBoard);
     // Save the board and the turn to localStorage
     saveGameToStorage({ board: newBoard, turn: turn });
 
@@ -53,12 +60,11 @@ useEffect(() => {
 
     // check tie game
     const isTie = newBoard.every((item) => item !== null);
-    // change turn  if no winner
 
-    if (tempWinningSquares!==null) {
+    if (tempWinningSquares !== null) {
       setIsWinner(() => true);
       setTurn(turn);
-    saveGameToStorage({ board: newBoard, turn: turn, isWinner: isWinner });
+      saveGameToStorage({ board: newBoard, turn: turn, isWinner: isWinner });
     } else if (isTie) {
       setIsWinner(false);
     }
@@ -66,6 +72,7 @@ useEffect(() => {
 
   return (
     <main>
+      <Title resetBoard={resetBoard}/>
       <div className="board">
         {board.map((mark, index) => {
           return (
@@ -73,7 +80,7 @@ useEffect(() => {
               key={index}
               id={index}
               updateBoard={() => updateBoard(index)}
-              winningSquares={tempWinningSquares}
+              winningSquares={winningSquares}
               isWinner={isWinner}
             >
               {mark}
@@ -81,22 +88,8 @@ useEffect(() => {
           );
         })}
       </div>
-      <footer>
-        <NextPlayer TURNS={TURNS} currentTurn={turn} />
-      </footer>
-      <article
-        className={
-          isWinner !== null ? 'modal-container show-modal' : 'modal-container'
-        }
-      >
-        <div className="modal-content">
-          <ResultModal
-            resetBoard={resetBoard}
-            turn={turn}
-            isWinner={isWinner}
-          />
-        </div>
-      </article>
+      <NextPlayer TURNS={TURNS} currentTurn={turn} />
+      <ResultModal resetBoard={resetBoard} turn={turn} isWinner={isWinner} />
     </main>
   );
 };

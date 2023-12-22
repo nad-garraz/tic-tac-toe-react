@@ -13,11 +13,19 @@ const ResultModal = ({ resetBoard, isWinner, turn }) => {
   const tieGame = 'El juego fue un empate';
 
   return (
-    <section className="resultado">
-      {isWinner ? congrats() : tieGame}
-      {isWinner && <div className="token-winner">{turn}</div>}
-      <button onClick={resetBoard}> Restart Board </button>
-    </section>
+    <article
+      className={
+        isWinner !== null ? 'modal-container show-modal' : 'modal-container'
+      }
+    >
+      <div className="modal-content">
+        <section className="resultado">
+          {isWinner ? congrats() : tieGame}
+          {isWinner && <div className="token-winner">{turn}</div>}
+          <button onClick={resetBoard}> Restart Board </button>
+        </section>
+      </div>
+    </article>
   );
 };
 
